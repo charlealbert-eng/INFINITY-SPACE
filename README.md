@@ -3,7 +3,7 @@
 Prototype de jeu éducatif pour le NASA Space Apps Challenge 2026
 (défi : Build a Junior Astronaut Mission Trainer).
 
-## But du jeu
+## L'objectif du jeu
 Le joueur dirige un petit avant-poste lunaire pendant 10 jours.
 Il doit garder l'équipage en vie en gérant l'eau, l'oxygène,
 l'énergie, la nourriture et la protection contre les radiations.
