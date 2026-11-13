@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFINITY SPACE - Mission Trainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- DECOR : ciel, étoiles, Terre, sol lunaire -->
+    <div class="sky" aria-hidden="true">
+        <div class="stars"></div>
+        <div class="stars stars-far"></div>
+        <div class="earth"></div>
+    </div>
+    <div class="moon-ground" aria-hidden="true"></div>
+
+    <!-- ECRAN D'ACCUEIL -->
+    <section id="home-screen">
+        <p class="badge">NASA Space Apps Challenge 2026</p>
+        <h1 class="title">INFINITY<br>SPACE</h1>
+        <p class="tagline">Junior Astronaut Mission Trainer</p>
+        <p class="intro">
+            Tu commandes une base sur la Lune. Quatre astronautes comptent sur toi :
+            garde-les en vie pendant 10 jours.
+        </p>
+        <ul class="goals">
+            <li>💧 Eau</li>
+            <li>🫁 Oxygène</li>
+            <li>⚡ Énergie</li>
+            <li>🍎 Nourriture</li>
+            <li>🛡️ Blindage</li>
+        </ul>
+        <button id="start-button" class="btn-launch">🚀 Lancer la mission</button>
+    </section>
+
+    <!-- TABLEAU DE BORD -->
+    <main id="dashboard" hidden>
+
+        <header class="hud">
+            <div class="hud-logo">INFINITY SPACE</div>
+            <div class="hud-box">☀️ Jour <strong id="mission-day">1 / 10</strong></div>
+            <div class="hud-box">👩‍🚀 Équipage <strong id="crew-count">4 astronautes</strong></div>
+        </header>
+
+        <!-- ALERTE D'EVENEMENT (remplie par le JavaScript) -->
+        <div id="event-alert" class="event-alert" role="alert" hidden>
+            <span class="alert-icon">⚠️</span>
+            <div>
+                <h3 id="event-title">Alerte</h3>
+                <p id="event-text"></p>
+            </div>
+        </div>
+
+        <div class="layout">
+
+            <!-- SCENE DE LA BASE -->
+            <section class="base-view" aria-label="Base lunaire">
+                <svg viewBox="0 0 400 240" role="img" aria-label="Dôme de la base lunaire avec un astronaute">
+                    <defs>
+                        <radialGradient id="dome" cx="40%" cy="30%" r="80%">
+                            <stop offset="0" stop-color="#bff4ff" stop-opacity=".9"/>
+                            <stop offset="1" stop-color="#2a6fd6" stop-opacity=".55"/>
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="200" cy="215" rx="210" ry="38" fill="#9a9db0"/>
+                    <ellipse cx="90" cy="212" rx="22" ry="6" fill="#7c8094"/>
+                    <ellipse cx="330" cy="222" rx="18" ry="5" fill="#7c8094"/>
+                    <g class="panel">
+                        <rect x="40" y="130" width="70" height="34" rx="3" fill="#1b3a8a" stroke="#3de6ff"/>
+                        <path d="M63 130v34M87 130v34M40 147h70" stroke="#3de6ff" stroke-width="1"/>
+                        <rect x="72" y="164" width="6" height="40" fill="#c9ccd6"/>
+                    </g>
+                    <path d="M130 205a80 80 0 0 1 160 0z" fill="url(#dome)" stroke="#3de6ff" stroke-width="2"/>
+                    <rect x="188" y="170" width="24" height="35" rx="4" fill="#ffa63d"/>
+                    <rect x="150" y="185" width="24" height="20" rx="3" fill="#c9ccd6"/>
+                    <rect x="226" y="185" width="24" height="20" rx="3" fill="#c9ccd6"/>
+                    <circle cx="200" cy="140" r="4" fill="#3dffa2" class="blink"/>
+                    <g class="astro">
+                        <rect x="318" y="168" width="22" height="30" rx="8" fill="#fff"/>
+                        <circle cx="329" cy="160" r="11" fill="#fff"/>
+                        <rect x="323" y="155" width="13" height="9" rx="4" fill="#12206b"/>
+                        <rect x="312" y="172" width="8" height="18" rx="4" fill="#e6e9f2"/>
+                    </g>
+                </svg>
+            </section>
+
+            <!-- RESSOURCES -->
+            <section class="resources" aria-label="Ressources de la base">
+
+                <div class="resource-card">
+                    <div class="res-icon">💧</div>
+                    <div class="res-body">
+                        <h3>Eau</h3>
+                        <div class="progress-bar"><div class="progress-fill" id="water-bar" style="width:80%"></div></div>
+                    </div>
+                    <p class="res-value" id="water-value">80%</p>
+                </div>
+
+                <div class="resource-card">
+                    <div class="res-icon">🫁</div>
+                    <div class="res-body">
+                        <h3>Oxygène</h3>
+                        <div class="progress-bar"><div class="progress-fill" id="oxygen-bar" style="width:90%"></div></div>
+                    </div>
+                    <p class="res-value" id="oxygen-value">90%</p>
+                </div>
+
+                <div class="resource-card">
+                    <div class="res-icon">⚡</div>
+                    <div class="res-body">
+                        <h3>Énergie</h3>
+                        <div class="progress-bar"><div class="progress-fill" id="energy-bar" style="width:75%"></div></div>
+                    </div>
+                    <p class="res-value" id="energy-value">75%</p>
+                </div>
+
+                <div class="resource-card">
+                    <div class="res-icon">🍎</div>
+                    <div class="res-body">
+                        <h3>Nourriture</h3>
+                        <div class="progress-bar"><div class="progress-fill" id="food-bar" style="width:85%"></div></div>
+                    </div>
+                    <p class="res-value" id="food-value">85%</p>
+                </div>
+
+                <div class="resource-card">
+                    <div class="res-icon">🛡️</div>
+                    <div class="res-body">
+                        <h3>Blindage</h3>
+                        <div class="progress-bar"><div class="progress-fill" id="shielding-bar" style="width:70%"></div></div>
+                    </div>
+                    <p class="res-value" id="shielding-value">70%</p>
+                </div>
+
+            </section>
+        </div>
+
+        <!-- ACTIONS -->
+        <section class="actions" aria-label="Actions de mission">
+            <button class="btn-action" data-action="saveEnergy"><span>🔋</span>Économiser l'énergie</button>
+            <button class="btn-action" data-action="repair"><span>🔧</span>Réparer</button>
+            <button class="btn-action" data-action="useReserve"><span>📦</span>Utiliser la réserve</button>
+            <button class="btn-action" data-action="reinforceShield"><span>🛡️</span>Renforcer le blindage</button>
+            <button class="btn-next" id="next-day-button">Jour suivant 🌙</button>
+        </section>
+
+        <!-- RAPPORT DE MISSION -->
+        <section class="mission-summary">
+            <h2>Journal de bord</h2>
+            <p id="mission-report">Mission démarrée. Surveille tes ressources !</p>
+        </section>
+
+    </main>
+
+    <!-- ECRAN DE FIN -->
+    <section id="end-screen" hidden>
+        <div class="end-card">
+            <h2 id="end-title">Mission terminée</h2>
+            <p id="end-text"></p>
+            <button id="restart-button" class="btn-launch">🚀 Rejouer</button>
+        </div>
+    </section>
+
+    <script src="js/resources.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+</html>
