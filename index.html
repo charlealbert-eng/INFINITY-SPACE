@@ -23,12 +23,12 @@
 
     <!-- ECRAN D'ACCUEIL -->
     <section id="home-screen">
-        <p class="badge">NASA Space Apps Challenge 2026</p>
+        <p class="badge">NASA Space Apps Challenge 2026 · Libreville 🇬🇦</p>
         <h1 class="title">INFINITY<br>SPACE</h1>
-        <p class="tagline">Junior Astronaut Mission Trainer</p>
+        <p class="tagline">Simulateur de Survie Lunaire & Gestion de Crise</p>
         <p class="intro">
-            Tu commandes une base sur la Lune. Quatre astronautes comptent sur toi :
-            garde-les en vie pendant 10 jours.
+            Depuis le centre de simulation de Libreville, prends les commandes d'une base lunaire.
+            Quatre astronautes comptent sur tes décisions pour survivre 10 jours en circuit fermé.
         </p>
         <ul class="goals">
             <li>💧 Eau</li>
@@ -40,6 +40,43 @@
         <button id="start-button" class="btn-launch">🚀 Lancer la mission</button>
     </section>
 
+    <!-- MODALE DE BRIEFING DE MISSION -->
+    <div id="briefing-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="briefing-title" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-tag">📡 BRIEFING DE MISSION · LIBREVILLE / BASE SÉLÉNÉ</span>
+                <h2 id="briefing-title">Ordres de Mission — 10 Jours</h2>
+            </div>
+
+            <p class="modal-desc">
+                <strong>Objectif :</strong> Protéger l'habitat lunaire et maintenir les <strong>4 astronautes</strong> en vie pendant <strong>10 jours</strong>.
+                Comme pour la préservation d'un écosystème fragile sur Terre, chaque ressource dépend des autres.
+            </p>
+
+            <div class="modal-crisis">
+                <h3>⚠️ AVARIE D'ALUNISSAGE DÉTECTÉE (JOUR 1)</h3>
+                <p>
+                    Juste après la phase de descente, une pluie de micrométéorites a endommagé le <strong>blindage de la base à 42 %</strong>.
+                    L'isolation thermique est affaiblie : tant que le blindage reste sous 45 %, l'équipage consomme plus de <strong>nourriture</strong> et d'<strong>énergie</strong> pour résister au froid lunaire.
+                </p>
+            </div>
+
+            <div class="modal-res-grid">
+                <div class="mini-res">💧 Eau : <strong>85%</strong></div>
+                <div class="mini-res">🫁 Oxygène : <strong>90%</strong></div>
+                <div class="mini-res">⚡ Énergie : <strong>75%</strong></div>
+                <div class="mini-res">🍎 Nourriture : <strong>80%</strong></div>
+                <div class="mini-res danger">🛡️ Blindage : <strong>42% ⚠️</strong></div>
+            </div>
+
+            <p class="modal-tip">
+                Chaque jour, analyse le diagnostic du Commandant et choisis une action stratégique avant de passer au jour suivant.
+            </p>
+
+            <button id="confirm-mission-button" class="btn-launch">👨‍🚀 Prendre les commandes</button>
+        </div>
+    </div>
+
     <!-- TABLEAU DE BORD -->
     <main id="dashboard" hidden>
 
@@ -47,14 +84,85 @@
             <div class="hud-logo">INFINITY SPACE</div>
             <div class="hud-box">☀️ Jour <strong id="mission-day">1 / 10</strong></div>
             <div class="hud-box">👩‍🚀 Équipage <strong id="crew-count">4 astronautes</strong></div>
+            <div class="hud-box">💓 État <strong id="crew-status">Sous tension</strong></div>
+            <button id="open-briefing-btn" class="btn-briefing" type="button">📋 Briefing</button>
         </header>
 
-        <!-- ALERTE D'EVENEMENT (remplie par le JavaScript) -->
-        <div id="event-alert" class="event-alert" role="alert" hidden>
-            <span class="alert-icon">⚠️</span>
-            <div>
-                <h3 id="event-title">Alerte</h3>
-                <p id="event-text"></p>
+        <!-- COMMANDANT REACTIF (EFFET CANDY CRUSH) -->
+        <section id="commander-panel" class="commander-panel state-worried" aria-label="État du commandant">
+            <div class="commander-avatar">
+                <svg id="commander-svg" viewBox="0 0 120 120" role="img" aria-label="Portrait animé du commandant">
+                    <!-- Gyrophare d'alerte sur antenne (visible en panique) -->
+                    <line x1="60" y1="8" x2="60" y2="20" stroke="#9fb3d9" stroke-width="3"/>
+                    <circle class="beacon-light" cx="60" cy="7" r="5" fill="#ff3b3b"/>
+
+                    <!-- Combinaison / Épaules -->
+                    <path d="M22 114 C22 92, 98 92, 98 114 Z" fill="#e6ecf8" stroke="#3de6ff" stroke-width="2"/>
+                    <rect x="46" y="96" width="28" height="14" rx="4" fill="#1c2d6e"/>
+                    <circle cx="53" cy="103" r="2.5" fill="#3dffa2"/>
+                    <circle cx="60" cy="103" r="2.5" fill="#ffa63d"/>
+                    <circle cx="67" cy="103" r="2.5" fill="#3de6ff"/>
+
+                    <!-- Casque -->
+                    <circle cx="60" cy="56" r="36" fill="#ffffff" stroke="#3de6ff" stroke-width="3"/>
+                    <!-- Visière -->
+                    <rect x="33" y="34" width="54" height="42" rx="20" fill="#101c4d" stroke="#5ce1ff" stroke-width="2"/>
+
+                    <!-- Yeux normaux / inquiets -->
+                    <g class="eyes-normal">
+                        <circle cx="48" cy="52" r="4.5" fill="#ffffff"/>
+                        <circle cx="72" cy="52" r="4.5" fill="#ffffff"/>
+                        <circle cx="49" cy="52" r="2" fill="#060a26"/>
+                        <circle cx="73" cy="52" r="2" fill="#060a26"/>
+                    </g>
+
+                    <!-- Yeux paniqués (grands ouverts) -->
+                    <g class="eyes-panic">
+                        <circle cx="48" cy="52" r="7" fill="#ffffff"/>
+                        <circle cx="72" cy="52" r="7" fill="#ffffff"/>
+                        <circle cx="48" cy="52" r="2.5" fill="#ff3b3b"/>
+                        <circle cx="72" cy="52" r="2.5" fill="#ff3b3b"/>
+                    </g>
+
+                    <!-- Sourcils -->
+                    <path class="brow-left" d="M41 44 Q48 41 54 44" stroke="#3de6ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path class="brow-right" d="M66 44 Q72 41 79 44" stroke="#3de6ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+                    <!-- Bouches selon humeur -->
+                    <path class="mouth-calm" d="M51 64 Q60 72 69 64" stroke="#3dffa2" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path class="mouth-worried" d="M51 67 Q55 64 60 67 Q65 70 69 67" stroke="#ffa63d" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <ellipse class="mouth-panic" cx="60" cy="67" rx="6" ry="7" fill="#ff4d4d"/>
+
+                    <!-- Goutte de sueur (inquiet / panique) -->
+                    <path class="sweat-drop" d="M82 40 C82 40, 86 46, 82 49 C78 46, 82 40, 82 40 Z" fill="#3de6ff"/>
+
+                    <!-- Mains levées (visibles uniquement en panique) -->
+                    <g class="hands-panic">
+                        <circle cx="24" cy="64" r="8" fill="#ffffff" stroke="#ffa63d" stroke-width="2"/>
+                        <circle cx="96" cy="64" r="8" fill="#ffffff" stroke="#ffa63d" stroke-width="2"/>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="commander-bubble">
+                <div class="commander-top">
+                    <span id="commander-mood" class="mood-badge">⚠️ VIGILANCE · AVARIE INITIALE</span>
+                </div>
+                <p id="commander-message">
+                    Commandant, le blindage est tombé à 42 % lors de l'alunissage ! Renforcez-le vite avant que le froid n'épuise nos rations.
+                </p>
+            </div>
+        </section>
+
+        <!-- DIAGNOSTIC D'INCIDENT / DEFI DU JOUR -->
+        <div id="event-alert" class="event-alert" role="alert">
+            <span class="alert-icon">🚨</span>
+            <div class="event-body">
+                <h3 id="event-title">Défi Jour 1 : Blindage endommagé à 42 %</h3>
+                <p id="event-text">L'impact lors de l'alunissage a fissuré la couche protectrice de l'habitat.</p>
+                <p id="event-consequence" class="event-consequence">
+                    Conséquence : Tant que le blindage reste sous 45 %, l'équipage consomme plus de nourriture et d'énergie.
+                </p>
             </div>
         </div>
 
@@ -77,6 +185,8 @@
                         <path d="M63 130v34M87 130v34M40 147h70" stroke="#3de6ff" stroke-width="1"/>
                         <rect x="72" y="164" width="6" height="40" fill="#c9ccd6"/>
                     </g>
+                    <!-- Aura du bouclier autour du dôme -->
+                    <path id="dome-shield-aura" d="M122 205a88 88 0 0 1 176 0" fill="none" stroke="#ffa63d" stroke-width="4" stroke-dasharray="8 6"/>
                     <path d="M130 205a80 80 0 0 1 160 0z" fill="url(#dome)" stroke="#3de6ff" stroke-width="2"/>
                     <rect x="188" y="170" width="24" height="35" rx="4" fill="#ffa63d"/>
                     <rect x="150" y="185" width="24" height="20" rx="3" fill="#c9ccd6"/>
@@ -94,49 +204,49 @@
             <!-- RESSOURCES -->
             <section class="resources" aria-label="Ressources de la base">
 
-                <div class="resource-card">
+                <div class="resource-card" id="card-water">
                     <div class="res-icon">💧</div>
                     <div class="res-body">
-                        <h3>Eau</h3>
-                        <div class="progress-bar"><div class="progress-fill" id="water-bar" style="width:100%"></div></div>
+                        <h3>Eau <span class="res-tag" id="tag-water"></span></h3>
+                        <div class="progress-bar"><div class="progress-fill" id="water-bar" style="width:85%"></div></div>
                     </div>
-                    <p class="res-value" id="water-value">100%</p>
+                    <p class="res-value" id="water-value">85%</p>
                 </div>
 
-                <div class="resource-card">
+                <div class="resource-card" id="card-oxygen">
                     <div class="res-icon">🫁</div>
                     <div class="res-body">
-                        <h3>Oxygène</h3>
-                        <div class="progress-bar"><div class="progress-fill" id="oxygen-bar" style="width:100%"></div></div>
+                        <h3>Oxygène <span class="res-tag" id="tag-oxygen"></span></h3>
+                        <div class="progress-bar"><div class="progress-fill" id="oxygen-bar" style="width:90%"></div></div>
                     </div>
-                    <p class="res-value" id="oxygen-value">100%</p>
+                    <p class="res-value" id="oxygen-value">90%</p>
                 </div>
 
-                <div class="resource-card">
+                <div class="resource-card" id="card-energy">
                     <div class="res-icon">⚡</div>
                     <div class="res-body">
-                        <h3>Énergie</h3>
-                        <div class="progress-bar"><div class="progress-fill" id="energy-bar" style="width:100%"></div></div>
+                        <h3>Énergie <span class="res-tag" id="tag-energy"></span></h3>
+                        <div class="progress-bar"><div class="progress-fill" id="energy-bar" style="width:75%"></div></div>
                     </div>
-                    <p class="res-value" id="energy-value">100%</p>
+                    <p class="res-value" id="energy-value">75%</p>
                 </div>
 
-                <div class="resource-card">
+                <div class="resource-card" id="card-food">
                     <div class="res-icon">🍎</div>
                     <div class="res-body">
-                        <h3>Nourriture</h3>
-                        <div class="progress-bar"><div class="progress-fill" id="food-bar" style="width:100%"></div></div>
+                        <h3>Nourriture <span class="res-tag" id="tag-food"></span></h3>
+                        <div class="progress-bar"><div class="progress-fill" id="food-bar" style="width:80%"></div></div>
                     </div>
-                    <p class="res-value" id="food-value">100%</p>
+                    <p class="res-value" id="food-value">80%</p>
                 </div>
 
-                <div class="resource-card">
+                <div class="resource-card" id="card-shielding">
                     <div class="res-icon">🛡️</div>
                     <div class="res-body">
-                        <h3>Blindage</h3>
-                        <div class="progress-bar"><div class="progress-fill" id="shielding-bar" style="width:60%"></div></div>
+                        <h3>Blindage <span class="res-tag" id="tag-shielding">AFFAIBLI</span></h3>
+                        <div class="progress-bar"><div class="progress-fill" id="shielding-bar" style="width:42%"></div></div>
                     </div>
-                    <p class="res-value" id="shielding-value">60%</p>
+                    <p class="res-value" id="shielding-value">42%</p>
                 </div>
 
             </section>
@@ -144,17 +254,35 @@
 
         <!-- ACTIONS -->
         <section class="actions" aria-label="Actions de mission">
-            <button class="btn-action" data-action="saveEnergy"><span>🔋</span>Économiser l'énergie</button>
-            <button class="btn-action" data-action="repair"><span>🔧</span>Réparer</button>
-            <button class="btn-action" data-action="useReserve"><span>📦</span>Utiliser la réserve</button>
-            <button class="btn-action" data-action="reinforceShield"><span>🛡️</span>Renforcer le blindage</button>
-            <button class="btn-next" id="next-day-button">Jour suivant 🌙</button>
+            <button class="btn-action" data-action="saveEnergy">
+                <span>🔋</span>
+                <strong>Économiser l'énergie</strong>
+                <small>+12% Énergie · -3% Eau</small>
+            </button>
+            <button class="btn-action" data-action="repair">
+                <span>🔧</span>
+                <strong>Réparer les systèmes</strong>
+                <small>+7% Oxygène · +5% Eau · -8% Énergie</small>
+            </button>
+            <button class="btn-action" data-action="useReserve">
+                <span>📦</span>
+                <strong>Utiliser la réserve (<span id="reserve-count">2</span>)</strong>
+                <small>+15% Eau · +10% O₂ · +12% Nourr.</small>
+            </button>
+            <button class="btn-action" data-action="reinforceShield">
+                <span>🛡️</span>
+                <strong>Renforcer le blindage</strong>
+                <small>+18% Blindage · -6% Énergie</small>
+            </button>
+            <button class="btn-next" id="next-day-button">Passer au jour suivant sans action 🌙</button>
         </section>
 
         <!-- RAPPORT DE MISSION -->
         <section class="mission-summary">
-            <h2>Journal de bord</h2>
-            <p id="mission-report">Mission démarrée. Surveille tes ressources !</p>
+            <h2>📟 Journal de bord & Diagnostic des systèmes</h2>
+            <div id="mission-report" class="report-lines">
+                <p>Mission initialisée. Analysez l'avarie du blindage (42 %) et choisissez votre première action.</p>
+            </div>
         </section>
 
     </main>
@@ -164,7 +292,8 @@
         <div class="end-card">
             <h2 id="end-title">Mission terminée</h2>
             <p id="end-text"></p>
-            <button id="restart-button" class="btn-launch">🚀 Rejouer</button>
+            <div id="end-stats" class="end-stats"></div>
+            <button id="restart-button" class="btn-launch">🚀 Relancer une simulation</button>
         </div>
     </section>
 
