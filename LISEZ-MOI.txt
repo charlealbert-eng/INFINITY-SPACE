@@ -1,0 +1,16 @@
+INFINITY SPACE — dossier du jeu
+
+OUVRIR EN LOCAL : double-clique sur index.html (internet requis pour les polices et Tailwind).
+Garde TOUT le dossier ensemble : index.html + css/ + js/.
+
+METTRE EN LIGNE (GitHub) : glisse le CONTENU du dossier (index.html, css, js) dans "Add file > Upload files".
+index.html doit être à la racine du dépôt.
+
+COMMENT LES FICHIERS PARTAGENT LES RESSOURCES
+Tous les fichiers js/ sont chargés par index.html, dans cet ordre, et partagent la même portée :
+  state.js lit/écrit "state" ; tous les autres fichiers l'utilisent directement.
+  Pour ajouter un fichier : crée js/monfichier.js, puis ajoute <script defer src="js/monfichier.js"></script>
+  dans index.html AVANT main.js.
+
+MULTIJOUEUR RÉEL : colle ta config Firebase dans js/config.js (Firestore + connexion anonyme activés).
+Sans config, le jeu tourne en "Mode Local".
