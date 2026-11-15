@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INFINITY SPACE — Édition Jeu Vidéo Coopérative 5 Joueurs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --hud-cyan: #38bdf8;
+      --hud-emerald: #10b981;
+      --hud-amber: #f59e0b;
+      --hud-rose: #f43f5e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #030712;
+      color: #f8fafc;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Fond spatial animé */
+    #space-bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Effet scanlines subtil façon cockpit */
+    .cockpit-scanlines {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+      background-size: 100% 4px;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.45;
+    }
+
+    /* Panneaux Sci-Fi biseautés */
+    .hud-panel {
+      background: linear-gradient(160deg, rgba(13, 21, 38, 0.88) 0%, rgba(7, 12, 24, 0.94) 100%);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: 0 0 28px rgba(2, 132, 199, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      clip-path: polygon(
+        14px 0%, calc(100% - 14px) 0%,
+        100% 14px, 100% calc(100% - 14px),
+        calc(100% - 14px) 100%, 14px 100%,
+        0% calc(100% - 14px), 0% 14px
+      );
+    }
+
+    .hud-subpanel {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 12px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    /* Boutons gaming tactiles */
+    .game-btn {
+      position: relative;
+      transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease, filter 0.15s ease;
+      cursor: pointer;
+    }
+    .game-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+    .game-btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+    }
+    .game-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    /* Barres de jauge segmentées */
+    .gauge-track {
+      background: rgba(2, 6, 23, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Animation secousse en cas d'erreur / alerte */
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-6px, 3px); }
+      40% { transform: translate(6px, -3px); }
+      60% { transform: translate(-4px, -2px); }
+      80% { transform: translate(4px, 2px); }
+    }
+    .shake-fx {
+      animation: screenShake 0.4s ease-in-out;
+    }
+
+    /* Animation flash de validation */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 14px rgba(56, 189, 248, 0.25); }
+      50% { box-shadow: 0 0 28px rgba(56, 189, 248, 0.6); }
+    }
+    .glow-active {
+      animation: pulseGlow 2.2s infinite ease-in-out;
+    }
+
+    /* Bannière cinématique de passage de jour */
+    @keyframes bannerSlide {
+      0% { opacity: 0; transform: translateY(-24px) scale(0.95); }
+      15% { opacity: 1; transform: translateY(0) scale(1); }
+      85% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-16px) scale(0.98); }
+    }
+    .cinematic-banner {
+      animation: bannerSlide 2.6s forwards ease-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative">
+
+  <!-- Fond spatial étoilé + planètes animées -->
+  <canvas id="space-bg-canvas"></canvas>
+  <div class="cockpit-scanlines"></div>
+
+  <!-- Bannière cinématique flottante -->
+  <div id="cinematic-toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+    <div class="hud-panel px-7 py-3.5 border-2 border-sky-400/70 text-center">
+      <div id="cinematic-sub" class="text-[10px] font-mono tracking-[0.25em] text-sky-300 uppercase">SYSTÈMES SYNCHRONISÉS</div>
+      <div id="cinematic-title" class="font-display text-lg sm:text-2xl font-black text-white tracking-wider mt-0.5">JOUR LUNAIRE 2</div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- ÉCRAN DE DÉMARRAGE / SALON MULTIJOUEUR (LOBBY)            -->
+  <!-- ========================================================= -->
+  <div id="lobby-modal" class="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div class="hud-panel w-full max-w-4xl p-5 sm:p-7 space-y-5 my-auto border-sky-400/40">
+      
+      <!-- En-tête Lobby Jeu Vidéo -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sky-500/20 pb-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center text-2xl shadow-lg shadow-sky-500/30 border border-white/20">
+            🚀
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono tracking-[0.2em] uppercase text-sky-400 font-bold">CO-OP EDITION • 5 JOUEURS</span>
+              <span id="lobby-net-status" class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300">
+                ⏳ Connexion...
+              </span>
+            </div>
+            <h1 class="font-display text-2xl sm:text-3xl font-black tracking-wider text-white">
+              INFINITY <span class="text-sky-400">SPACE</span>
+            </h1>
+          </div>
+        </div>
+
+        <button type="button" onclick="toggleAudio()" id="btn-sound-lobby"
+          class="game-btn self-start sm:self-center px-3.5 py-2 rounded-xl hud-subpanel text-xs font-mono text-sky-300 flex items-center gap-2">
+          <span id="sound-icon-lobby">🔊</span> Audio SFX : ON
+        </button>
+      </div>
+
+      <!-- Sélecteur de Mode de Jeu (Solo vs Coop) -->
+      <div>
+        <label class="block text-[11px] font-mono uppercase tracking-wider text-sky-300 mb-2">0. Choisissez le Mode de Jeu</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button type="button" id="mode-btn-solo" onclick="selectGameMode('solo')"
+            class="game-btn p-3.5 rounded-xl border-2 border-emerald-400 bg-emerald-500/15 text-left flex items-center gap-3">
+            <span class="text-2xl">🎮</span>
+            <div>
+              <div class="font-display text-sm font-bold text-white">MODE SOLO (1 Joueur + 4 IA)</div>
+              <div class="text-[11px] text-slate-300">Démarrez immédiatement avec 4 coéquipiers IA</div>
+            </div>
+          </button>
+
+          <button type="button" id="mode-btn-coop" onclick="selectGameMode('coop')"
+            class="game-btn p-3.5 rounded-xl border-2 border-slate-700 bg-slate-900/85 text-left flex items-center gap-3">
+            <span class="text-2xl">🚀</span>
+            <div>
+              <div class="font-display text-sm font-bold text-white">MODE COOP (5 Joueurs en Ligne)</div>
+              <div class="text-[11px] text-slate-400">Partagez le lien d'escouade à vos 4 amis</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Identité & Code Salon -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="hud-subpanel p-3.5">
+          <label class="block text-[11px] font-mono uppercase tracking-wider text-sky-300 mb-1.5">1. Votre Indicatif Pilote</label>
+          <input id="lobby-player-name" type="text" maxlength="16" value="Astronaute"
+            class="w-full px-3.5 py-2.5 rounded-lg bg-slate-950/90 border border-slate-700 text-white font-semibold text-sm focus:outline-none focus:border-sky-400" />
+        </div>
+
+        <div id="coop-room-box" class="hud-subpanel p-3.5">
+          <label class="block text-[11px] font-mono uppercase tracking-wider text-sky-300 mb-1.5">2. Code Escouade (Partageable)</label>
+          <div class="flex gap-2">
+            <input id="lobby-room-code" type="text" maxlength="18" value="ARTEMIS-5"
+              class="flex-1 px-3.5 py-2.5 rounded-lg bg-slate-950/90 border border-slate-700 text-amber-300 font-mono font-bold text-sm uppercase focus:outline-none focus:border-sky-400" />
+            <button type="button" onclick="copyShareLink()"
+              class="game-btn px-4 py-2.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-display font-bold text-xs uppercase tracking-wider">
+              🔗 Copier Lien
+            </button>
+          </div>
+          <p id="share-toast" class="hidden text-[11px] text-emerald-400 font-mono mt-1.5">✔ Lien d'invitation copié ! Partagez-le aux 4 membres.</p>
+        </div>
+      </div>
+
+      <!-- Sélection des 5 Postes Exclusifs -->
+      <div>
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-xs font-mono uppercase tracking-wider text-slate-300">3. Choisissez votre poste unique (1 par membre)</span>
+          <span id="lobby-slots-count" class="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">
+            0 / 5 postes réservés
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Poste 1 : Énergie -->
+          <button type="button" id="role-card-energy" onclick="pickRole('energy')"
+            class="game-btn p-3.5 rounded-xl border-2 border-slate-700 bg-slate-900/85 text-left">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono text-amber-400 font-bold">⚡ ÉNERGIE</span>
+              <span id="role-owner-energy" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Libre</span>
+            </div>
+            <div class="font-display text-sm font-bold text-white">Ingénieur Réacteur</div>
+            <p class="text-[11px] text-slate-400 mt-1">Addition de cellules solaires</p>
+          </button>
+
+          <!-- Poste 2 : Bouclier -->
+          <button type="button" id="role-card-shield" onclick="pickRole('shield')"
+            class="game-btn p-3.5 rounded-xl border-2 border-slate-700 bg-slate-900/85 text-left">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono text-rose-400 font-bold">🛡️ BOUCLIER</span>
+              <span id="role-owner-shield" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Libre</span>
+            </div>
+            <div class="font-display text-sm font-bold text-white">Officier Défense</div>
+            <p class="text-[11px] text-slate-400 mt-1">Suite logique de fréquence</p>
+          </button>
+
+          <!-- Poste 3 : Biosphère -->
+          <button type="button" id="role-card-life" onclick="pickRole('life')"
+            class="game-btn p-3.5 rounded-xl border-2 border-slate-700 bg-slate-900/85 text-left">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono text-emerald-400 font-bold">🌱 BIOSPHÈRE</span>
+              <span id="role-owner-life" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Libre</span>
+            </div>
+            <div class="font-display text-sm font-bold text-white">Botaniste O₂</div>
+            <p class="text-[11px] text-slate-400 mt-1">Dosage eau & lumière serre</p>
+          </button>
+
+          <!-- Poste 4 : Télémétrie -->
+          <button type="button" id="role-card-comms" onclick="pickRole('comms')"
+            class="game-btn p-3.5 rounded-xl border-2 border-slate-700 bg-slate-900/85 text-left">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono text-sky-400 font-bold">📡 TÉLÉMÉTRIE</span>
+              <span id="role-owner-comms" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Libre</span>
+            </div>
+            <div class="font-display text-sm font-bold text-white">Officier Radio</div>
+            <p class="text-[11px] text-slate-400 mt-1">Interrupteurs 8 - 4 - 2 - 1</p>
+          </button>
+
+          <!-- Poste 5 : Navigation -->
+          <button type="button" id="role-card-nav" onclick="pickRole('nav')"
+            class="game-btn p-3.5 rounded-xl border-2 border-slate-700 bg-slate-900/85 text-left sm:col-span-2 lg:col-span-2">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono text-purple-400 font-bold">🧭 NAVIGATION</span>
+              <span id="role-owner-nav" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Libre</span>
+            </div>
+            <div class="font-display text-sm font-bold text-white">Pilote Orbital</div>
+            <p class="text-[11px] text-slate-400 mt-1">Calcul rapide de poussée (F = m × a)</p>
+          </button>
+        </div>
+
+        <p id="lobby-role-error" class="hidden text-xs font-mono text-rose-400 mt-2 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2"></p>
+
+        <!-- Récapitulatif en direct de l'équipage et des tâches attribuées -->
+        <div id="lobby-roster-box" class="mt-3 hud-subpanel p-3.5 border-sky-500/30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-sky-300 font-bold">👥 Équipage & Tâches attribuées</span>
+            <span id="lobby-sync-mode" class="text-[10px] font-mono text-emerald-400">Sync Temps Réel</span>
+          </div>
+          <div id="lobby-roster-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            <!-- Rempli dynamiquement par updateLobbyUI() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Statut du Commandant & Option IA -->
+      <div id="coop-commander-row" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div id="commander-status-banner" class="hud-subpanel p-3.5 border-sky-400/30 flex items-center justify-between gap-2">
+          <div>
+            <div class="text-[10px] font-mono uppercase text-slate-400">AUTORITÉ DE LANCEMENT</div>
+            <div id="commander-label" class="text-xs font-mono text-sky-300 font-bold mt-0.5">👑 Recherche du Commandant...</div>
+          </div>
+          <span id="commander-badge" class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 font-mono text-[10px] font-bold">SYNC</span>
+        </div>
+
+        <label id="commander-ai-box" class="hud-subpanel p-3.5 flex items-center justify-between gap-3 cursor-pointer">
+          <div>
+            <div class="text-xs font-bold text-white">Compléter avec coéquipiers IA</div>
+            <div class="text-[11px] text-slate-400">Permet au Commandant de lancer à &lt; 5 joueurs</div>
+          </div>
+          <input id="lobby-ai-fill" type="checkbox" onchange="updateLobbyUI()" class="w-5 h-5 accent-sky-400 rounded cursor-pointer" />
+        </label>
+      </div>
+
+      <!-- Règle coopérative + Bouton Lancer -->
+      <div class="space-y-2.5">
+        <div class="text-[11px] font-mono text-amber-300/90 bg-amber-500/10 border border-amber-400/25 rounded-lg px-3 py-2 flex items-center gap-2">
+          <span>⚠️</span>
+          <span><strong>Règle Haute Tension :</strong> Chaque joueur dispose de <strong>3 tentatives</strong> par Sol. À 0 tentative ou à la fin du chrono, toute l'équipe échoue !</span>
+        </div>
+
+        <button type="button" id="btn-launch-mission" onclick="launchMission()"
+          class="game-btn w-full py-4 rounded-xl bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400 text-slate-950 font-display font-black text-sm sm:text-base tracking-wider uppercase shadow-lg shadow-sky-500/25">
+          🚀 Lancer la Mission Lunaire
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- HUD SUPÉRIEUR DE JEU (COCKPIT BAR)                        -->
+  <!-- ========================================================= -->
+  <header class="relative z-20 px-3 sm:px-6 pt-3">
+    <div class="max-w-7xl mx-auto hud-panel px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Logo & Escouade -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-lg">
+          🛰️
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-black text-sm sm:text-base tracking-wider text-white">INFINITY SPACE</span>
+            <span id="badge-room" class="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/40 text-amber-300 font-mono text-[11px] font-bold">ARTEMIS-5</span>
+          </div>
+          <div class="text-[11px] font-mono text-slate-400">
+            Commandant : <span id="hud-commander-name" class="text-sky-300 font-bold">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compteurs centraux : Jour Lunaire + Minuteur + Progression Équipe -->
+      <div class="flex items-center gap-2.5 sm:gap-4">
+        <div class="hud-subpanel px-3 py-1.5 text-center">
+          <div class="text-[9px] font-mono uppercase text-slate-400">SOL LUNAIRE</div>
+          <div class="font-display text-sm sm:text-base font-black text-white">
+            <span id="hud-sol" class="text-sky-400">1</span> / <span id="hud-max-sol">5</span>
+          </div>
+        </div>
+
+        <div id="timer-box" class="hud-subpanel px-3.5 py-1.5 text-center border-sky-400/40">
+          <div class="text-[9px] font-mono uppercase text-slate-400">CHRONO</div>
+          <div id="hud-timer" class="font-display text-base sm:text-lg font-black text-emerald-400">01:00</div>
+        </div>
+
+        <div class="hud-subpanel px-3 py-1.5 text-center">
+          <div class="text-[9px] font-mono uppercase text-slate-400">ESCOUADE</div>
+          <div class="font-display text-sm sm:text-base font-black text-amber-300">
+            <span id="hud-ready-count">0</span> / 5
+          </div>
+        </div>
+      </div>
+
+      <!-- Score & Audio -->
+      <div class="flex items-center gap-2.5">
+        <div class="hud-subpanel px-3.5 py-1.5 text-right">
+          <div class="text-[9px] font-mono uppercase text-slate-400">SCORE LIVE</div>
+          <div id="hud-score" class="font-display text-sm sm:text-base font-black text-emerald-400">1 500</div>
+        </div>
+        <button type="button" onclick="toggleAudio()" title="Activer/Couper le son"
+          class="game-btn w-10 h-10 rounded-xl hud-subpanel flex items-center justify-center text-base">
+          <span id="sound-icon-hud">🔊</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- ZONE PRINCIPALE DU COCKPIT (3 COLONNES GAMING)            -->
+  <!-- ========================================================= -->
+  <main id="game-main-grid" class="relative z-20 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+    <!-- COLONNE GAUCHE (3 cols) : TÉLÉMÉTRIE VAISSEAU + RADAR ÉQUIPAGE -->
+    <section class="lg:col-span-3 space-y-4">
+      
+      <!-- Jauges Intégrité de la Base Lunaire -->
+      <div class="hud-panel p-4 space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="font-display text-xs font-bold tracking-wider text-sky-300 uppercase">État de la Base</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        </div>
+
+        <!-- Énergie -->
+        <div>
+          <div class="flex justify-between text-xs font-mono mb-1">
+            <span class="text-amber-300">⚡ Réacteur</span>
+            <span id="val-energy" class="font-bold text-white">75%</span>
+          </div>
+          <div class="gauge-track h-2.5 rounded-full overflow-hidden">
+            <div id="bar-energy" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-500" style="width: 75%"></div>
+          </div>
+        </div>
+
+        <!-- Bouclier -->
+        <div>
+          <div class="flex justify-between text-xs font-mono mb-1">
+            <span class="text-rose-300">🛡️ Bouclier</span>
+            <span id="val-shield" class="font-bold text-white">75%</span>
+          </div>
+          <div class="gauge-track h-2.5 rounded-full overflow-hidden">
+            <div id="bar-shield" class="h-full bg-gradient-to-r from-rose-600 to-pink-400 transition-all duration-500" style="width: 75%"></div>
+          </div>
+        </div>
+
+        <!-- Biosphère -->
+        <div>
+          <div class="flex justify-between text-xs font-mono mb-1">
+            <span class="text-emerald-300">🌱 Oxygène O₂</span>
+            <span id="val-life" class="font-bold text-white">75%</span>
+          </div>
+          <div class="gauge-track h-2.5 rounded-full overflow-hidden">
+            <div id="bar-life" class="h-full bg-gradient-to-r from-emerald-600 to-teal-300 transition-all duration-500" style="width: 75%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Équipage en Direct (5 Postes) -->
+      <div class="hud-panel p-4 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="font-display text-xs font-bold tracking-wider text-sky-300 uppercase">Équipage (5 Postes)</span>
+          <span class="text-[10px] font-mono text-slate-400">LIVE</span>
+        </div>
+        <div id="crew-status-list" class="space-y-2">
+          <!-- Injecté dynamiquement -->
+        </div>
+      </div>
+    </section>
+
+    <!-- COLONNE CENTRALE (6 cols) : SCÈNE BASE LUNAIRE + CONSOLE DE CALCUL -->
+    <section class="lg:col-span-6 space-y-4">
+
+      <!-- Écran Visuel Animé de la Base Lunaire -->
+      <div class="hud-panel p-3 relative overflow-hidden">
+        <canvas id="moon-base-canvas" class="w-full h-36 sm:h-44 rounded-lg block bg-slate-950/90"></canvas>
+        
+        <!-- Overlay Radio Mission en bas de l'écran radar -->
+        <div class="mt-2.5 px-3 py-2 rounded-lg bg-slate-950/90 border border-sky-500/25 flex items-center gap-2.5">
+          <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[10px] font-bold shrink-0">RADIO</span>
+          <p id="hud-radio-text" class="text-xs font-mono text-slate-200 truncate">En attente de synchronisation...</p>
+        </div>
+      </div>
+
+      <!-- Terminal Interactif du Poste du Joueur -->
+      <div class="hud-panel p-4 sm:p-6 border-sky-400/50 glow-active space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <span id="puzzle-role-tag" class="px-2.5 py-1 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-300 font-mono text-xs font-bold">
+            ⚡ POSTE 1 : ÉNERGIE
+          </span>
+          <span class="text-[11px] font-mono text-slate-400">Pilote : <strong id="hud-my-name" class="text-white">Astronaute</strong></span>
+        </div>
+
+        <div>
+          <h2 id="puzzle-heading" class="font-display text-lg sm:text-xl font-black text-white">Terminal de Contrôle</h2>
+          <p id="puzzle-instructions" class="text-xs sm:text-sm text-slate-300 mt-1">Résolvez le calcul pour verrouiller votre système.</p>
+        </div>
+
+        <!-- Zone dynamique des boutons du mini-jeu -->
+        <div id="puzzle-body" class="space-y-3.5">
+          <!-- Injecté par buildPuzzleForRole() -->
+        </div>
+
+        <!-- Validation & Alerte d'erreur fatale -->
+        <div class="pt-2 border-t border-slate-800/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 text-xs font-mono">
+              <span class="text-slate-400">TENTATIVES RESTANTES :</span>
+              <span id="hud-my-attempts" class="text-sm font-bold text-rose-400">❤️❤️❤️ (3/3)</span>
+            </div>
+            <p id="puzzle-status-msg" class="text-xs font-mono text-amber-300">
+              ⚠️ 3 tentatives max avant échec collectif !
+            </p>
+          </div>
+          <button type="button" id="btn-submit-task" onclick="submitMyTask()"
+            class="game-btn shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-display font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25">
+            ✔ Verrouiller mon Poste
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLONNE DROITE (3 cols) : CLASSEMENT LIVE + COMMS RAPIDES -->
+    <section class="lg:col-span-3 space-y-4">
+      
+      <!-- Classement Mondial en Live -->
+      <div class="hud-panel p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="font-display text-xs font-bold tracking-wider text-amber-300 uppercase">🏆 Classement Live</span>
+          <span class="text-[10px] font-mono text-emerald-400">TEMPS RÉEL</span>
+        </div>
+        <div id="leaderboard-list" class="space-y-2">
+          <!-- Injecté dynamiquement -->
+        </div>
+      </div>
+
+      <!-- Radio Tactique Rapide -->
+      <div class="hud-panel p-4 space-y-2.5">
+        <div class="font-display text-xs font-bold tracking-wider text-sky-300 uppercase border-b border-slate-800 pb-2">
+          🎙️ Comms Escouade
+        </div>
+        <div class="grid grid-cols-1 gap-2">
+          <button type="button" onclick="sendQuickRadio('⚡ J’ai presque fini mon calcul !')"
+            class="game-btn px-3 py-2 rounded-lg hud-subpanel text-left text-xs font-mono text-slate-200 hover:border-sky-400/50">
+            ⚡ « J’ai presque fini ! »
+          </button>
+          <button type="button" onclick="sendQuickRadio('⏳ Attention au chrono les gars !')"
+            class="game-btn px-3 py-2 rounded-lg hud-subpanel text-left text-xs font-mono text-amber-300 hover:border-amber-400/50">
+            ⏳ « Attention au chrono ! »
+          </button>
+          <button type="button" onclick="sendQuickRadio('🤝 Bien joué l’équipe, on continue !')"
+            class="game-btn px-3 py-2 rounded-lg hud-subpanel text-left text-xs font-mono text-emerald-300 hover:border-emerald-400/50">
+            🤝 « Bien joué l’équipe ! »
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- MODALE DE FIN DE PARTIE (VICTOIRE OU ÉCHEC COLLECTIF)      -->
+  <!-- ========================================================= -->
+  <div id="endgame-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
+    <div class="hud-panel max-w-lg w-full p-6 sm:p-8 text-center space-y-5 border-2 border-sky-400/50">
+      <div id="end-icon" class="text-5xl sm:text-6xl mx-auto">💥</div>
+      <div>
+        <div id="end-subtitle" class="text-xs font-mono uppercase tracking-[0.2em] text-rose-400 font-bold">MISSION INTERROMPUE</div>
+        <h2 id="end-title" class="font-display text-2xl sm:text-3xl font-black text-white mt-1">ÉCHEC DE L'ESCOUADE</h2>
+      </div>
+      <p id="end-desc" class="text-sm text-slate-300 leading-relaxed bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+        Un membre de l'équipe a commis une erreur.
+      </p>
+      <div class="hud-subpanel p-3.5 flex items-center justify-around">
+        <div>
+          <div class="text-[10px] font-mono text-slate-400 uppercase">SCORE FINAL</div>
+          <div id="end-score" class="font-display text-xl font-black text-amber-300">1 500</div>
+        </div>
+        <div class="h-8 w-px bg-slate-800"></div>
+        <div>
+          <div class="text-[10px] font-mono text-slate-400 uppercase">JOUR ATTEINT</div>
+          <div id="end-sol" class="font-display text-xl font-black text-sky-400">Sol 1 / 5</div>
+        </div>
+      </div>
+      <div id="end-restart-zone" class="space-y-2">
+        <button type="button" id="btn-restart-mission" onclick="restartMission()"
+          class="game-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-400 text-slate-950 font-display font-black text-sm uppercase tracking-wider">
+          🔄 Relancer la Mission (Commandant)
+        </button>
+        <p id="end-restart-hint" class="hidden text-xs font-mono text-amber-300"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- LOGIQUE DU JEU & SYNCHRONISATION MULTIJOUEUR              -->
+  <!-- ========================================================= -->
+  <script>
+    // --- SYNTHÉTISEUR SONORE DE JEU VIDÉO (WEB AUDIO API) ---
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    // --- ANIMATIONS CANVAS (FOND SPATIAL & BASE LUNAIRE) ---
+    function initCanvasVisuals() {
+      // 1. Fond spatial étoilé + planètes animées
+      const spaceCanvas = document.getElementById('space-bg-canvas');
+      if (spaceCanvas) {
+        const sCtx = spaceCanvas.getContext('2d');
+        let stars = [];
+
+        function resizeSpace() {
+          spaceCanvas.width = window.innerWidth;
+          spaceCanvas.height = window.innerHeight;
+          stars = Array.from({ length: 130 }, () => ({
+            x: Math.random() * spaceCanvas.width,
+            y: Math.random() * spaceCanvas.height,
+            r: Math.random() * 1.6 + 0.3,
+            speed: Math.random() * 0.25 + 0.05,
+            alpha: Math.random() * 0.7 + 0.3
+          }));
+        }
+        resizeSpace();
+        window.addEventListener('resize', resizeSpace);
+
+        function animateSpace() {
+          sCtx.clearRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+
+          // Nébuleuse subtile en arrière-plan
+          const grad = sCtx.createRadialGradient(
+            spaceCanvas.width * 0.75, spaceCanvas.height * 0.25, 20,
+            spaceCanvas.width * 0.75, spaceCanvas.height * 0.25, spaceCanvas.width * 0.55
+          );
+          grad.addColorStop(0, 'rgba(14, 165, 233, 0.09)');
+          grad.addColorStop(0.5, 'rgba(79, 70, 229, 0.04)');
+          grad.addColorStop(1, 'rgba(3, 7, 18, 0)');
+          sCtx.fillStyle = grad;
+          sCtx.fillRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+
+          // Étoiles scintillantes
+          stars.forEach((st) => {
+            st.y += st.speed;
+            if (st.y > spaceCanvas.height) {
+              st.y = 0;
+              st.x = Math.random() * spaceCanvas.width;
+            }
+            sCtx.beginPath();
+            sCtx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+            sCtx.fillStyle = `rgba(226, 232, 240, ${st.alpha})`;
+            sCtx.fill();
+          });
+
+          requestAnimationFrame(animateSpace);
+        }
+        animateSpace();
+      }
+
+      // 2. Radar visuel de la Base Lunaire dans le cockpit
+      const moonCanvas = document.getElementById('moon-base-canvas');
+      if (moonCanvas) {
+        const mCtx = moonCanvas.getContext('2d');
+        let radarAngle = 0;
+
+        function resizeMoon() {
+          const rect = moonCanvas.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            moonCanvas.width = rect.width;
+            moonCanvas.height = rect.height;
+          }
+        }
+        resizeMoon();
+        window.addEventListener('resize', resizeMoon);
+
+        function animateMoonBase() {
+          if (moonCanvas.width === 0) resizeMoon();
+          const w = moonCanvas.width;
+          const h = moonCanvas.height;
+          mCtx.clearRect(0, 0, w, h);
+
+          // Sol lunaire incurvé
+          mCtx.fillStyle = '#0f172a';
+          mCtx.beginPath();
+          mCtx.ellipse(w / 2, h + 35, w * 0.65, 65, 0, Math.PI, 0);
+          mCtx.fill();
+          mCtx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+          mCtx.lineWidth = 1.5;
+          mCtx.stroke();
+
+          // Dômes de la base lunaire
+          const cx = w / 2;
+          const cy = h - 24;
+
+          // Dôme central (Biosphère)
+          mCtx.beginPath();
+          mCtx.arc(cx, cy, 28, Math.PI, 0);
+          mCtx.fillStyle = 'rgba(16, 185, 129, 0.22)';
+          mCtx.fill();
+          mCtx.strokeStyle = '#34d399';
+          mCtx.stroke();
+
+          // Module gauche (Réacteur)
+          mCtx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+          mCtx.strokeStyle = '#fbbf24';
+          mCtx.fillRect(cx - 78, cy - 18, 36, 18);
+          mCtx.strokeRect(cx - 78, cy - 18, 36, 18);
+
+          // Module droit (Antenne Télémétrie)
+          mCtx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+          mCtx.strokeStyle = '#38bdf8';
+          mCtx.fillRect(cx + 42, cy - 22, 34, 22);
+          mCtx.strokeRect(cx + 42, cy - 22, 34, 22);
+
+          // Onde radar balayante
+          radarAngle += 0.025;
+          const scanX = cx + Math.cos(radarAngle) * (w * 0.38);
+          mCtx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+          mCtx.beginPath();
+          mCtx.moveTo(cx + 59, cy - 22);
+          mCtx.lineTo(scanX, 14);
+          mCtx.stroke();
+
+          // Bouclier énergétique autour de la base
+          mCtx.beginPath();
+          mCtx.arc(cx, cy + 6, 105, Math.PI * 1.08, Math.PI * 1.92);
+          mCtx.strokeStyle = 'rgba(244, 63, 94, 0.35)';
+          mCtx.setLineDash([6, 4]);
+          mCtx.stroke();
+          mCtx.setLineDash([]);
+
+          requestAnimationFrame(animateMoonBase);
+        }
+        animateMoonBase();
+      }
+    }
+// ... existing code ... -->
+    window.addEventListener('load', initCanvasVisuals);
+  </script>
+</body>
+</html>
