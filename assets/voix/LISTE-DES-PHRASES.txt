@@ -1,0 +1,22 @@
+LISTE DES PHRASES DE LILI — enregistrez chaque phrase (voix de femme joyeuse, avec le sourire !) et nommez le fichier .mp3 comme indiqué, dans assets/voix/
+
+story-1.mp3 : Coucou mon ami ! Moi, c'est Lili ! Viens jouer avec moi, s'il te plaît ! Mars a besoin de toi !
+story-2.mp3 : Regarde, c'est Mars ! Une grande planète toute rouge, froide, et pleine de poussière. Brrr ! Mais on a une jolie petite maison pour se protéger.
+story-3.mp3 : Dans la maison, il faut de l'air pour respirer, de l'énergie pour la lumière, de l'eau pour boire, et de bons légumes à manger ! Miam !
+story-4.mp3 : Chaque jour, il y aura un problème à résoudre. Tu choisis une solution… mais chaque solution aide un peu, et coûte un peu. Alors on réfléchit ensemble !
+story-5.mp3 : Et tu sais quoi ? Les vrais savants de la NASA surveillent le Soleil, car il envoie parfois des rayons méchants. Nous aussi, on fait attention !
+story-6.mp3 : Tu es prêt ? Super ! Hihi ! Allez, viens avec moi, on part à l'aventure !
+tour-1.mp3 : Regarde à gauche ! Ce sont tes ressources : l'eau, l'air, l'énergie, la nourriture et les rayons. Si l'une tombe à zéro, oh non, c'est perdu !
+tour-2.mp3 : Chaque jour, un petit problème arrive sur Mars. Je te le raconte, et toi, tu aides les astronautes !
+tour-3.mp3 : Tu as quatre solutions. Chacune aide un peu et coûte un peu. Regarde bien le pouce en haut et le pouce en bas avant de choisir !
+tour-4.mp3 : Attention ! Tu as trois cœurs et un chrono. Un mauvais choix, ou trop de temps, et tu perds un cœur. Je crois en toi ! Allez, on joue !
+sol-1.mp3 : Le petit vaisseau se pose sur Mars. La nuit, il fait très froid ! Il faut vite rendre la maison chaude et sûre.
+sol-2.mp3 : On a besoin d'air pour respirer, et la machine qui fabrique l'air a une petite fuite.
+sol-3.mp3 : La poussière rouge a bouché le filtre de l'eau. Sans eau propre, personne ne peut boire !
+sol-4.mp3 : Les plantes de la serre jaunissent ! L'eau où elles mangent n'est pas bien réglée.
+sol-5.mp3 : Le vent de Mars a couvert les panneaux solaires de poussière. Il y a de moins en moins d'électricité !
+sol-6.mp3 : Les savants de la NASA ont vu une grosse éruption du Soleil. Des rayons méchants arrivent !
+sol-7.mp3 : Une énorme tempête rouge cache le Soleil. Il reste très peu d'énergie !
+sol-8.mp3 : Après la tempête, la pompe du chauffage est bloquée par la poussière. Brrr !
+sol-9.mp3 : La Terre veut savoir : peut-on faire de l'air, de l'eau et de la nourriture en même temps ?
+sol-10.mp3 : C'est le dernier jour ! Il faut tout vérifier et envoyer un message à la Terre.
