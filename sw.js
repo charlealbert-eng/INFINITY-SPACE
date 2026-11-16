@@ -1,4 +1,0 @@
-const C="infinity-v7",F=["README.md", "index.html","sources.html","js/space-weather.js","js/gameplay.js","js/lili-stage.js","js/launch-fx.js","js/quiz-ui.js", "manifest.webmanifest", "css/style.css", "css/kid.css", "js/resources.js", "js/nasa-cache.js", "js/kids2.js", "js/rover.js", "js/simulation.js", "js/map3d.js", "js/kids.js", "js/mission.js", "js/kids3.js", "js/story.js", "js/background.js", "js/main.js", "js/missions-data.js", "js/extras.js", "js/voix-textes.js"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(["./"].concat(F))).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&e.request.url.startsWith(self.location.origin)){const x=r.clone();caches.open(C).then(c=>c.put(e.request,x));}return r;}).catch(()=>caches.match(e.request)));});
