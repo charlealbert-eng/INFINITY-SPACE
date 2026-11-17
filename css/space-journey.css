@@ -1,0 +1,332 @@
+/* ==========================================================================
+   INFINITY SPACE — VOYAGE NARRATIF TERRE -> MARS (4 ACTES) & COCKPIT NASA PRO
+   Séparation totale entre :
+   1. L'Odyssée de Lily (Enfants / Débutants : 3D colorée, guidage étape par étape)
+   2. NASA Deep-Space Ops (Étudiants / Scientifiques : télémétrie JPL, shaders,
+      mécanique orbitale de Hohmann, EDL 7 minutes de terreur & mode dégradé)
+   ========================================================================== */
+
+/* Overlay plein écran de cinématique 3D étape par étape */
+#space-journey-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10055;
+  display: none;
+  flex-direction: column;
+  background: #020617;
+  color: #f8fafc;
+  font-family: "Trebuchet MS", system-ui, sans-serif;
+  overflow: hidden;
+}
+
+#space-journey-modal.active {
+  display: flex;
+}
+
+#space-journey-modal.expert-theme {
+  font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
+  background: #030712;
+}
+
+#journey-3d-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Grille télémétrique subtile pour le mode scientifique */
+#space-journey-modal.expert-theme::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+/* Barre supérieure de progression des 4 Actes du voyage */
+.sj-topbar {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.92), rgba(2, 6, 23, 0.55));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.sj-acts-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sj-act-pill {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.sj-act-pill.done {
+  border-color: #10b981;
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.16);
+}
+
+.sj-act-pill.current {
+  border-color: #f97316;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.5);
+}
+
+.expert-theme .sj-act-pill {
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.expert-theme .sj-act-pill.current {
+  background: rgba(14, 165, 233, 0.22);
+  border-color: #38bdf8;
+  color: #7dd3fc;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
+}
+
+/* Panneau latéral de télémétrie scientifique (visible uniquement en mode Expert) */
+.sj-expert-telemetry {
+  position: relative;
+  z-index: 4;
+  display: none;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 18px;
+  pointer-events: none;
+}
+
+.expert-theme .sj-expert-telemetry {
+  display: flex;
+}
+
+.sj-telem-box {
+  background: rgba(3, 7, 18, 0.84);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-left: 3px solid #38bdf8;
+  padding: 8px 12px;
+  min-width: 145px;
+  backdrop-filter: blur(6px);
+}
+
+.sj-telem-box small {
+  display: block;
+  font-size: 10px;
+  color: #7dd3fc;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.sj-telem-box strong {
+  font-size: 15px;
+  color: #f8fafc;
+}
+
+/* Panneau inférieur de narration & décision interactive */
+.sj-bottom-stage {
+  position: relative;
+  z-index: 5;
+  margin-top: auto;
+  padding: 16px 18px 20px;
+  background: linear-gradient(0deg, rgba(2, 6, 23, 0.97) 68%, rgba(2, 6, 23, 0.0));
+}
+
+.sj-dialogue-wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+.expert-theme .sj-dialogue-wrap {
+  grid-template-columns: 1fr;
+}
+
+/* Avatar animé de Lily (mode enfant / débutant uniquement) */
+.sj-lily-card {
+  width: 118px;
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.92), rgba(15, 23, 42, 0.95));
+  border: 2px solid #38bdf8;
+  border-radius: 22px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+  animation: sjFloat 3s ease-in-out infinite;
+}
+
+@keyframes sjFloat {
+  50% { transform: translateY(-6px); }
+}
+
+.expert-theme .sj-lily-card {
+  display: none !important;
+}
+
+.sj-narrative-card {
+  background: rgba(15, 23, 42, 0.93);
+  border: 2px solid #f97316;
+  border-radius: 22px;
+  padding: 16px 20px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.78);
+}
+
+.expert-theme .sj-narrative-card {
+  background: rgba(3, 7, 18, 0.92);
+  border: 1px solid #38bdf8;
+  border-left: 4px solid #38bdf8;
+  border-radius: 6px;
+  box-shadow: 0 0 30px rgba(14, 165, 233, 0.18);
+}
+
+.sj-kicker {
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fb923c;
+  margin-bottom: 4px;
+}
+
+.expert-theme .sj-kicker {
+  color: #38bdf8;
+}
+
+.sj-title {
+  margin: 0 0 6px;
+  font-size: clamp(17px, 2.5vw, 22px);
+  color: #ffffff;
+}
+
+.sj-story-text {
+  margin: 0 0 12px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+.expert-theme .sj-story-text {
+  font-size: 13.5px;
+  color: #cbd5e1;
+}
+
+.sj-choices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.sj-choice-btn {
+  text-align: left;
+  background: #1e293b;
+  border: 1.5px solid #475569;
+  border-radius: 14px;
+  padding: 11px 14px;
+  color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.sj-choice-btn:hover {
+  border-color: #fb923c;
+  background: #273549;
+  transform: translateY(-2px);
+}
+
+.expert-theme .sj-choice-btn {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #1e3a8a;
+  border-radius: 4px;
+}
+
+.expert-theme .sj-choice-btn:hover {
+  border-color: #38bdf8;
+  background: rgba(14, 165, 233, 0.14);
+}
+
+.sj-choice-btn strong {
+  display: block;
+  font-size: 13.5px;
+  color: #fde047;
+  margin-bottom: 3px;
+}
+
+.expert-theme .sj-choice-btn strong {
+  color: #7dd3fc;
+}
+
+.sj-choice-btn span {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+/* Bandeau d'état de survie / mode dégradé */
+.sj-degraded-alert {
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid #ef4444;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  color: #fecaca;
+}
+
+.sj-ok-alert {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid #10b981;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  color: #a7f3d0;
+}
+
+/* Cockpit Scientifique Expert sur l'écran principal (#view-mission) */
+body.expert-cockpit-mode {
+  font-family: "JetBrains Mono", "Consolas", monospace;
+}
+
+body.expert-cockpit-mode .cmd-topbar {
+  background: #030712 !important;
+  border-bottom: 2px solid #0284c7 !important;
+}
+
+body.expert-cockpit-mode .mission-brief-card,
+body.expert-cockpit-mode .panel-left,
+body.expert-cockpit-mode .panel-right {
+  background: rgba(3, 7, 18, 0.92) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  border-radius: 6px !important;
+}
+
+body.expert-cockpit-mode .decision-card {
+  border-radius: 6px !important;
+  border-color: #1e3a8a !important;
+}
+
+body.expert-cockpit-mode .decision-card:hover {
+  border-color: #38bdf8 !important;
+}

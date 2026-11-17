@@ -1,0 +1,343 @@
+/* ==========================================================================
+   INFINITY EDU GABON — NIVEAUX PAR CHAPITRE, SCANNER DE COURS & MOBILE MONEY
+   Extension modulaire non-destructive : conserve 100 % du moteur spatial existant.
+   ========================================================================== */
+
+/* Bouton d'accès rapide dans la barre d'outils */
+.env-btn-gabon {
+  background: linear-gradient(90deg, #009e60 0%, #fcd116 50%, #3a75c4 100%) !important;
+  color: #091e14 !important;
+  font-weight: 900 !important;
+  border: 1px solid #ffffff !important;
+}
+
+.env-btn-scan {
+  background: linear-gradient(135deg, #2563eb, #0d9488) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 1px solid #93c5fd !important;
+}
+
+/* Bannière de sélection d'univers dans l'écran d'accueil */
+.ao-universe-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 18px;
+  padding: 10px;
+  background: rgba(30, 41, 59, 0.75);
+  border-radius: 18px;
+  border: 1px solid #475569;
+}
+
+.ao-univ-btn {
+  flex: 1;
+  min-width: 220px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  background: #0f172a;
+  color: #cbd5e1;
+  transition: all 0.15s ease;
+}
+
+.ao-univ-btn.active-gabon {
+  background: linear-gradient(135deg, rgba(0, 158, 96, 0.25), rgba(252, 209, 22, 0.2), rgba(58, 117, 196, 0.25));
+  border-color: #fcd116;
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(0, 158, 96, 0.35);
+}
+
+.ao-univ-btn.active-mars {
+  background: rgba(234, 88, 12, 0.22);
+  border-color: #fb923c;
+  color: #ffffff;
+}
+
+/* Modale Principale : Niveaux par Chapitre, Scanner de Cours & Activation */
+#gabon-works-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10045;
+  background: rgba(3, 7, 18, 0.94);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  overflow-y: auto;
+  font-family: "Trebuchet MS", system-ui, sans-serif;
+  color: #f8fafc;
+}
+
+#gabon-works-modal.open {
+  display: flex;
+}
+
+.gw-dialog {
+  width: 100%;
+  max-width: 960px;
+  max-height: 93vh;
+  overflow-y: auto;
+  background: #0f172a;
+  border: 2px solid #009e60;
+  border-radius: 26px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 158, 96, 0.25);
+}
+
+.gw-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.gw-flag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0, 158, 96, 0.25), rgba(252, 209, 22, 0.22), rgba(58, 117, 196, 0.25));
+  border: 1px solid #fcd116;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fef08a;
+}
+
+.gw-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.gw-tab {
+  padding: 9px 15px;
+  border-radius: 999px;
+  border: 1.5px solid #334155;
+  background: #1e293b;
+  color: #cbd5e1;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gw-tab:hover {
+  border-color: #94a3b8;
+}
+
+.gw-tab.active {
+  background: #009e60;
+  border-color: #6ee7b7;
+  color: #ffffff;
+}
+
+.gw-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
+  gap: 14px;
+}
+
+.gw-work-card {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 18px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gw-work-card:hover {
+  border-color: #fcd116;
+}
+
+.gw-work-card.locked-card {
+  border-color: #f59e0b;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+}
+
+.gw-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.gw-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(58, 117, 196, 0.25);
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.gw-tag-status {
+  background: rgba(0, 158, 96, 0.25);
+  color: #6ee7b7;
+}
+
+.gw-tag-pending {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fcd34d;
+}
+
+/* Zone de Scan / Photo de page de cahier ou livre */
+.gw-scan-box {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(13, 148, 136, 0.16));
+  border: 2px dashed #38bdf8;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.gw-scan-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.gw-scan-preview {
+  max-width: 100%;
+  max-height: 210px;
+  border-radius: 12px;
+  border: 1.5px solid #38bdf8;
+  margin-top: 10px;
+  display: none;
+}
+
+.gw-progress-wrap {
+  width: 100%;
+  background: #0f172a;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+  border: 1px solid #334155;
+  display: none;
+}
+
+.gw-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #009e60, #fcd116);
+  transition: width 0.25s ease;
+}
+
+.gw-form {
+  display: grid;
+  gap: 12px;
+}
+
+.gw-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .gw-form-row { grid-template-columns: 1fr; }
+}
+
+.gw-field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #93c5fd;
+  margin-bottom: 5px;
+}
+
+.gw-field input,
+.gw-field select,
+.gw-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #1e293b;
+  border: 1.5px solid #475569;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.gw-field input:focus,
+.gw-field select:focus,
+.gw-field textarea:focus {
+  outline: none;
+  border-color: #fcd116;
+}
+
+.gw-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #1e293b;
+}
+
+/* Cartes de paiement Airtel Money / Moov Money / Pass Prépayé */
+.gw-pay-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.gw-pay-card {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.gw-pay-card.airtel {
+  border-color: #ef4444;
+}
+
+.gw-pay-card.moov {
+  border-color: #3b82f6;
+}
+
+.gw-pay-card.voucher {
+  border-color: #10b981;
+}
+
+.gw-legal-box {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: #fef3c7;
+}
+
+/* Mode Éducation Gabon actif sur le tableau de bord */
+body.edu-gabon-mode .cmd-topbar {
+  border-bottom: 3px solid #009e60 !important;
+}
+
+body.edu-gabon-mode .brand-title::after,
+body.edu-gabon-mode .topbar-brand::after {
+  content: " • ÉDUCATION GABON 🇬🇦";
+  font-size: 0.72em;
+  color: #10b981;
+}
